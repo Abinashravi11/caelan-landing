@@ -35,7 +35,7 @@ export default function Home() {
     },
     {
       icon: HiMail,
-      text: "hello@caelan.com",
+      text: "admin@caelan.com",
       showExternalLink: true,
       iconBg: "bg-[#0B2230]",
       iconColor: "text-white"
@@ -391,7 +391,7 @@ export default function Home() {
 
       {/* Rostering & HR Section */}
       <section 
-        ref={(el) => (sectionRefs.current.rostering = el)}
+        ref={(el) => { sectionRefs.current.rostering = el; }}
         className="sticky top-33 bg-[#e2fafe] rounded-t-3xl transition-all duration-300" 
         style={{ 
           minHeight: isExpanded('rostering') ? '530px' : '80px', 
@@ -485,7 +485,7 @@ export default function Home() {
 
       {/* Referral Management Section */}
       <section 
-        ref={(el) => (sectionRefs.current.referral = el)}
+        ref={(el) => { sectionRefs.current.referral = el; }}
         className="sticky top-33 bg-[#fef6e6] rounded-t-3xl transition-all duration-300" 
         style={{ 
           minHeight: isExpanded('referral') ? '530px' : '80px', 
@@ -581,7 +581,7 @@ export default function Home() {
 
       {/* Care Planning Section */}
       <section 
-        ref={(el) => (sectionRefs.current.careplanning = el)}
+        ref={(el) => { sectionRefs.current.careplanning = el; }}
         className="sticky top-33 bg-[#f6eefb] rounded-t-3xl transition-all duration-300" 
         style={{ 
           minHeight: isExpanded('careplanning') ? '530px' : '80px', 
@@ -677,7 +677,7 @@ export default function Home() {
 
       {/* Compliance Section */}
       <section 
-        ref={(el) => (sectionRefs.current.compliance = el)}
+        ref={(el) => { sectionRefs.current.compliance = el; }}
         className="sticky top-33 bg-[#fae9e9] rounded-t-3xl transition-all duration-300" 
         style={{ 
           minHeight: isExpanded('compliance') ? '530px' : '80px', 
@@ -774,7 +774,7 @@ export default function Home() {
 
       {/* Payroll & Finance Section */}
       <section 
-        ref={(el) => (sectionRefs.current.payroll = el)}
+        ref={(el) => { sectionRefs.current.payroll = el; }}
         className="sticky top-33 bg-[#ecf6ea] rounded-t-3xl transition-all duration-300" 
         style={{ 
           minHeight: isExpanded('payroll') ? '530px' : '80px', 
@@ -868,7 +868,7 @@ export default function Home() {
 
       {/* Trainings Section */}
       <section 
-        ref={(el) => (sectionRefs.current.trainings = el)}
+        ref={(el) => { sectionRefs.current.trainings = el; }}
         className="sticky top-33 bg-[#ffecfa] rounded-t-3xl transition-all duration-300" 
         style={{ 
           minHeight: isExpanded('trainings') ? '530px' : '80px', 
