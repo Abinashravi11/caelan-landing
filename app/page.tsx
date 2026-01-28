@@ -67,11 +67,17 @@ export default function Home() {
     trainings: null,
   });
 
+  const getInTouchRef = useRef<HTMLElement | null>(null);
+
   const isExpanded = (sectionId: string) => {
     const activeSectionIndex = sectionOrder.indexOf(activeSection);
     const currentSectionIndex = sectionOrder.indexOf(sectionId);
     // Expand current and all sections below it
     return currentSectionIndex >= activeSectionIndex;
+  };
+
+  const scrollToGetInTouch = () => {
+    getInTouchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   // Auto-slide testimonials
@@ -142,6 +148,7 @@ export default function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={scrollToGetInTouch}
                 className="px-4 py-2 sm:px-6 sm:py-2.5 cursor-pointer text-white rounded-full text-sm sm:text-base font-medium transition-all flex items-center gap-1.5 sm:gap-2 animate-gradient-bg"
                 style={{
                   background: 'linear-gradient(90deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
@@ -229,6 +236,7 @@ export default function Home() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
+                  onClick={scrollToGetInTouch}
                   className="px-8 py-3.5 cursor-pointer text-white rounded-full font-medium transition-all flex items-center gap-2 mx-auto lg:mx-0"
                   style={{
                     background: 'linear-gradient(90deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
@@ -1532,7 +1540,7 @@ export default function Home() {
       </section>
 
       {/* Get in Touch Section */}
-      <section className="py-12 sm:py-16 lg:py-24 bg-white relative z-[70] px-4 sm:px-6 lg:px-0">
+      <section ref={getInTouchRef} className="py-12 sm:py-16 lg:py-24 bg-white relative z-[70] px-4 sm:px-6 lg:px-0">
         <div className="container-1200 px-4 sm:px-6 lg:px-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
