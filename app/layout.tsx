@@ -21,25 +21,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
 return (
-  <html lang="en">
-    <head>
-      {/* Google Analytics */}
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-5VCC29HNTJ"
-        strategy="afterInteractive"
-      />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-5VCC29HNTJ');
-        `}
-      </Script>
-    </head>
+    <html lang="en">
+      <body className={`${poppins.variable} antialiased`}>
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-5VCC29HNTJ"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-5VCC29HNTJ');
+          `}
+        </Script>
 
-    <body className={`${poppins.variable} antialiased`}>
-      {children}
-    </body>
-  </html>
-);
+        {children}
+      </body>
+    </html>
+  );
+}
