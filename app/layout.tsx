@@ -11,7 +11,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Caelan Landing",
+  title: "Caelan Care",
   description: "Modern landing page built with Next.js",
 };
 
