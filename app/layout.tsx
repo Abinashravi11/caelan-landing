@@ -13,6 +13,9 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Caelan Care",
   description: "Modern landing page built with Next.js",
+  verification: {
+    google: "SPVj-SRHH6I1zn0A38_unWpPNT2rMn4nLcGwgfiuW4Q",
+  }
 };
 
 export default function RootLayout({
