@@ -78,7 +78,7 @@ export default function Home() {
 
   const scrollToGetInTouch = () => {
   getInTouchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  window.gtag('event', 'get_in_touch_click', {
+  (window as any).gtag('event', 'get_in_touch_click', {
     event_category: 'engagement',
     event_label: 'Get in Touch Button',
   });
