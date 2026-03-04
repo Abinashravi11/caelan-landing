@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { IoCalendarSharp } from "react-icons/io5";
 import { HiLocationMarker, HiMail, HiPhone } from "react-icons/hi";
@@ -9,6 +9,47 @@ import { FaLinkedin, FaExternalLinkAlt } from "react-icons/fa";
 import { RiHandHeartFill } from "react-icons/ri";
 import { TbReportMoney } from "react-icons/tb";
 
+const TESTIMONIALS = [
+  {
+    quote: "It's simple, clear, and doesn't feel complicated. Staff picked it up quickly without needing much explanation.",
+    name: "Mercy Okaye",
+    role: "Registered Manager",
+    image: "/assets/images/testimonial.png"
+  },
+] as const;
+
+const CONTACT_CARDS = [
+  {
+    icon: HiLocationMarker,
+    text: "Office 1, Church Walk House, Great Oaks, Basildon SS14 1GJ, United Kingdom",
+    showExternalLink: true,
+    iconBg: "bg-[#0B2230]",
+    iconColor: "text-white"
+  },
+  {
+    icon: HiMail,
+    text: "admin@caelan.care",
+    showExternalLink: true,
+    iconBg: "bg-[#0B2230]",
+    iconColor: "text-white"
+  },
+  {
+    icon: FaLinkedin,
+    text: "Caelan care",
+    showExternalLink: true,
+    iconBg: "bg-[#0B2230]",
+    iconColor: "text-white"
+  },
+  {
+    icon: HiPhone,
+    text: "+44 01268 203030",
+    showExternalLink: false,
+    iconBg: "bg-[#0B2230]",
+    iconColor: "text-white"
+  }
+] as const;
+
+const SECTION_ORDER = ['rostering', 'referral', 'careplanning', 'compliance', 'payroll', 'trainings'] as const;
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
@@ -20,11 +61,11 @@ export default function Home() {
   const [formStatus, setFormStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [formError, setFormError] = useState("");
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  }, []);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  const handleFormSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setFormStatus("sending");
     setFormError("");
@@ -50,49 +91,7 @@ export default function Home() {
       setFormStatus("error");
       setFormError(err.message || "Failed to send message. Please try again.");
     }
-  };
-
-  const testimonials = [
-    {
-      quote: "It's simple, clear, and doesn't feel complicated. Staff picked it up quickly without needing much explanation.",
-      name: "Mercy Okaye",
-      role: "Registered Manager",
-      image: "/assets/images/testimonial.png"
-    },
-  ];
-
-  const contactCards = [
-    {
-      icon: HiLocationMarker,
-      text: "Office 1, Church Walk House, Great Oaks, Basildon SS14 1GJ, United Kingdom",
-      showExternalLink: true,
-      iconBg: "bg-[#0B2230]",
-      iconColor: "text-white"
-    },
-    {
-      icon: HiMail,
-      text: "admin@caelan.care",
-      showExternalLink: true,
-      iconBg: "bg-[#0B2230]",
-      iconColor: "text-white"
-    },
-    {
-      icon: FaLinkedin,
-      text: "Caelan care",
-      showExternalLink: true,
-      iconBg: "bg-[#0B2230]",
-      iconColor: "text-white"
-    },
-    {
-      icon: HiPhone,
-      text: "+44 01268 203030",
-      showExternalLink: false,
-      iconBg: "bg-[#0B2230]",
-      iconColor: "text-white"
-    }
-  ];
-
-  const sectionOrder = ['rostering', 'referral', 'careplanning', 'compliance', 'payroll', 'trainings'];
+  }, [formData]);
   
   const sectionRefs = useRef<{ [key: string]: HTMLElement | null }>({
     rostering: null,
@@ -106,63 +105,61 @@ export default function Home() {
   const getInTouchRef = useRef<HTMLElement | null>(null);
 
   const isExpanded = (sectionId: string) => {
-    const activeSectionIndex = sectionOrder.indexOf(activeSection);
-    const currentSectionIndex = sectionOrder.indexOf(sectionId);
-    // Expand current and all sections below it
-    return currentSectionIndex >= activeSectionIndex;
+    const activeSectionIndex = SECTION_ORDER.indexOf(sectionId as typeof SECTION_ORDER[number]);
+    const currentActiveIndex = SECTION_ORDER.indexOf(activeSection as typeof SECTION_ORDER[number]);
+    return activeSectionIndex >= currentActiveIndex;
   };
 
-  const scrollToGetInTouch = () => {
-  getInTouchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  (window as any).gtag('event', 'get_in_touch_click', {
-    event_category: 'engagement',
-    event_label: 'Get in Touch Button',
-  });
-};
+  const scrollToGetInTouch = useCallback(() => {
+    getInTouchRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
 
   // Auto-slide testimonials
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000); // Change every 5 seconds
+      setCurrentTestimonial((prev) => (prev + 1) % TESTIMONIALS.length);
+    }, 5000);
 
     return () => clearInterval(timer);
-  }, [testimonials.length]);
+  }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setScrolled(scrollY > 50);
-      
-      // Check if we're in the sections area (after hero section)
-      const heroHeight = window.innerHeight;
-      setInSections(scrollY > heroHeight - 200);
+    let ticking = false;
 
-      // Determine active section based on scroll position
-      const sections = ['rostering', 'referral', 'careplanning', 'compliance', 'payroll', 'trainings'];
-      let foundActive = false;
-      
-      for (let i = 0; i < sections.length; i++) {
-        const section = sectionRefs.current[sections[i]];
-        if (section) {
-          const rect = section.getBoundingClientRect();
-          // If section top is at or above the sticky position (132px)
-          if (rect.top <= 150 && rect.bottom > 150) {
-            setActiveSection(sections[i]);
-            foundActive = true;
-            break;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        setScrolled(scrollY > 50);
+
+        const heroHeight = window.innerHeight;
+        setInSections(scrollY > heroHeight - 200);
+
+        let foundActive = false;
+        for (let i = 0; i < SECTION_ORDER.length; i++) {
+          const section = sectionRefs.current[SECTION_ORDER[i]];
+          if (section) {
+            const rect = section.getBoundingClientRect();
+            if (rect.top <= 150 && rect.bottom > 150) {
+              setActiveSection(SECTION_ORDER[i]);
+              foundActive = true;
+              break;
+            }
           }
         }
-      }
-      
-      // If no section is active yet, keep the first one expanded
-      if (!foundActive && scrollY < heroHeight) {
-        setActiveSection('rostering');
-      }
+
+        if (!foundActive && scrollY < heroHeight) {
+          setActiveSection('rostering');
+        }
+
+        ticking = false;
+      });
     };
 
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Initial call
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -174,7 +171,7 @@ export default function Home() {
         className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-full px-4"
       >
         <div className="container-1200">
-          <div className={`backdrop-blur-md ${inSections ? 'bg-white/90 shadow-2xl' : scrolled ? 'bg-white/50 shadow-xl' : 'bg-white/40 shadow-lg'} rounded-full border-2 border-white/60 px-3.5 py-2.5 transition-all duration-300`}>
+          <div className={`backdrop-blur-[48px] ${inSections ? 'bg-white/90 shadow-2xl' : scrolled ? 'bg-white/50 shadow-xl' : 'bg-[rgba(255,255,255,0.34)] shadow-lg'} rounded-full border border-[#e9e0ee] px-4 py-2.5 transition-all duration-300`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Image 
@@ -182,6 +179,7 @@ export default function Home() {
                   alt="Caelan Logo" 
                   width={120} 
                   height={32}
+                  priority
                   className="h-8 w-auto"
                 />
               </div>
@@ -189,9 +187,9 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={scrollToGetInTouch}
-                className="px-4 py-2 sm:px-6 sm:py-2.5 cursor-pointer text-white rounded-full text-sm sm:text-base font-medium transition-all flex items-center gap-1.5 sm:gap-2 animate-gradient-bg"
+                className="px-4 py-2 sm:px-6 sm:py-2.5 cursor-pointer text-white rounded-full text-sm sm:text-base font-medium transition-all flex items-center gap-2.5"
                 style={{
-                  background: 'linear-gradient(90deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
+                  background: 'linear-gradient(135deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
                   backgroundSize: '200% auto',
                   animation: 'gradient 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                 }}
@@ -207,24 +205,26 @@ export default function Home() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section className="min-h-screen pt-30 flex items-center justify-center bg-gradient-to-b from-pink-50 via-purple-50 to-white relative overflow-hidden">
+      <section className="min-h-screen pt-30 flex items-center justify-center relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#fef6f8] via-[#f8f0fa] to-white"></div>
         {/* Background Color Spots */}
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none will-change-transform">
           <div className="relative w-full max-w-[1200px] h-full">
             {/* Top Left Pink Spot */}
-            <div className="absolute top-20 left-40 w-[600px] h-[600px] bg-pink-200/25 rounded-full" style={{ filter: 'blur(120px)' }}></div>
+            <div className="absolute top-20 left-40 w-[600px] h-[600px] bg-pink-200/25 rounded-full" style={{ filter: 'blur(80px)' }}></div>
             {/* Top Right Purple Spot */}
-            <div className="absolute top-10 right-32 w-[550px] h-[550px] bg-purple-200/25 rounded-full" style={{ filter: 'blur(120px)' }}></div>
+            <div className="absolute top-10 right-32 w-[550px] h-[550px] bg-purple-200/25 rounded-full" style={{ filter: 'blur(80px)' }}></div>
             {/* Center Blue Spot */}
-            <div className="absolute top-40 left-1/4 w-[500px] h-[500px] bg-blue-200/25 rounded-full" style={{ filter: 'blur(120px)' }}></div>
+            <div className="absolute top-40 left-1/4 w-[500px] h-[500px] bg-blue-200/25 rounded-full" style={{ filter: 'blur(80px)' }}></div>
             {/* Right Yellow Spot */}
-            <div className="absolute top-32 right-20 w-[600px] h-[600px] bg-yellow-200/35 rounded-full" style={{ filter: 'blur(120px)' }}></div>
+            <div className="absolute top-32 right-20 w-[600px] h-[600px] bg-yellow-200/35 rounded-full" style={{ filter: 'blur(80px)' }}></div>
             {/* Center Purple Spot */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[450px] h-[450px] bg-purple-300/20 rounded-full" style={{ filter: 'blur(120px)' }}></div>
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[450px] h-[450px] bg-purple-300/20 rounded-full" style={{ filter: 'blur(80px)' }}></div>
           </div>
         </div>
 
-        <div className="container-1200 py-12 sm:py-16 lg:py-20 w-full relative z-10 px-4 sm:px-6 lg:px-0">
+        <div className="container-1200 py-12 sm:py-16 lg:py-20 w-full relative z-10">
           <div className="grid lg:grid-cols-2 items-center gap-8 sm:gap-12 lg:gap-16 w-full">
             {/* Left Content */}
             <motion.div
@@ -238,10 +238,11 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-2.5 bg-linear-to-r from-purple-400 to-blue-400 text-white rounded-full text-xs sm:text-sm font-medium"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-normal text-white"
+                style={{ background: 'linear-gradient(228deg, rgba(77, 91, 248, 0.7) 16%, rgba(189, 111, 246, 0.7) 74%)' }}
               >
-                <span className="text-base sm:text-lg">✨</span>
-                <span className="font-medium px-1 sm:px-2">AI-powered Care Management Software</span>
+                <span className="text-sm sm:text-lg">✨</span>
+                <span className="font-medium px-0.5 sm:px-2 text-xs sm:text-sm">AI-powered Care Management Software</span>
               </motion.div>
 
               {/* Main Heading */}
@@ -249,10 +250,10 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-[3rem] font-semibold leading-tight"
+                className="text-[32px] sm:text-4xl md:text-5xl lg:text-[48px] font-semibold leading-[1.2] sm:leading-[1.25]"
               >
-                <span className="text-[#1a1f3c]">Everything You Need<br />to Run a Care Service<br /></span>
-                <span className="gradient-text-animated bg-linear-to-r from-teal-600 via-cyan-600 via-blue-600 to-purple-700 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient inline-block">
+                <span className="text-[#152d42]">Everything You Need<br />to Run a Care Service<br /></span>
+                <span className="bg-clip-text text-transparent inline-block bg-linear-to-r from-teal-600 via-cyan-500 to-blue-600 animate-gradient" style={{ backgroundSize: '200% auto' }}>
                   in One Place
                 </span>
               </motion.h1>
@@ -262,7 +263,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.6 }}
-                className="text-base leading-8 text-gray-600 max-w-lg mx-auto lg:mx-0"
+                className="text-base lg:text-lg leading-8 max-w-[523px] mx-auto lg:mx-0" style={{ color: '#444C64' }}
               >
                 Manage care, staff, compliance, and finances through one simple, intelligent system.
               </motion.p>
@@ -277,9 +278,9 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={scrollToGetInTouch}
-                  className="px-8 py-3.5 cursor-pointer text-white rounded-full font-medium transition-all flex items-center gap-2 mx-auto lg:mx-0"
+                  className="px-6 py-3.5 cursor-pointer text-white rounded-full text-lg font-medium transition-all flex items-center gap-2.5 mx-auto lg:mx-0"
                   style={{
-                    background: 'linear-gradient(90deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
+                    background: 'linear-gradient(135deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
                     backgroundSize: '200% auto',
                     animation: 'gradient 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                   }}
@@ -327,12 +328,15 @@ export default function Home() {
                     y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
                     x: { duration: 6, repeat: Infinity, ease: "easeInOut" }
                   }}
-                  className="absolute top-8 left-8 w-28 h-28 rounded-full overflow-hidden shadow-2xl border-2 border-white z-20"
+                  className="absolute top-8 left-8 w-28 h-28 rounded-full overflow-hidden border-0 z-20 bg-[#f7d777] p-1"
+                  style={{ boxShadow: '5px 4px 32px rgba(110,110,110,0.25)' }}
                 >
                   <Image 
                     src="/assets/images/healthcare-1.jpg" 
                     alt="Healthcare professional with patient"
                     fill
+                    sizes="112px"
+                    priority
                     className="object-cover"
                   />
                 </motion.div>
@@ -352,12 +356,15 @@ export default function Home() {
                     y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
                     x: { duration: 7, repeat: Infinity, ease: "easeInOut" }
                   }}
-                  className="absolute top-4 right-4 w-44 h-44 rounded-full overflow-hidden shadow-2xl border-2 border-white z-20"
+                  className="absolute top-4 right-4 w-44 h-44 rounded-full overflow-hidden border-0 z-20 bg-[#bae27f] p-1"
+                  style={{ boxShadow: '5px 4px 32px rgba(110,110,110,0.25)' }}
                 >
                   <Image 
                     src="/assets/images/healthcare-2.jpg" 
                     alt="Healthcare team collaboration"
                     fill
+                    sizes="176px"
+                    priority
                     className="object-cover"
                   />
                 </motion.div>
@@ -377,12 +384,15 @@ export default function Home() {
                     y: { duration: 8, repeat: Infinity, ease: "easeInOut" },
                     x: { duration: 8, repeat: Infinity, ease: "easeInOut" }
                   }}
-                  className="absolute bottom-4 left-0 w-52 h-52 rounded-full overflow-hidden shadow-2xl border-2 border-white z-30"
+                  className="absolute bottom-4 left-0 w-52 h-52 rounded-full overflow-hidden border-0 z-30 bg-[#7ae4f7] p-1"
+                  style={{ boxShadow: '5px 4px 32px rgba(110,110,110,0.25)' }}
                 >
                   <Image 
                     src="/assets/images/healthcare-3.jpg" 
                     alt="Nurse using tablet"
                     fill
+                    sizes="208px"
+                    priority
                     className="object-cover"
                   />
                 </motion.div>
@@ -402,12 +412,15 @@ export default function Home() {
                     y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
                     x: { duration: 5, repeat: Infinity, ease: "easeInOut" }
                   }}
-                  className="absolute bottom-16 right-4 w-32 h-32 rounded-full overflow-hidden shadow-2xl border-2 border-white z-20"
+                  className="absolute bottom-16 right-4 w-32 h-32 rounded-full overflow-hidden border-0 z-20 bg-[#e6aff0] p-1"
+                  style={{ boxShadow: '5px 4px 32px rgba(110,110,110,0.25)' }}
                 >
                   <Image 
                     src="/assets/images/healthcare-4.jpg" 
                     alt="Elderly care service"
                     fill
+                    sizes="128px"
+                    priority
                     className="object-cover"
                   />
                 </motion.div>
@@ -450,12 +463,14 @@ export default function Home() {
                   y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
                   x: { duration: 6, repeat: Infinity, ease: "easeInOut" }
                 }}
-                className="absolute top-3 left-25 w-40 h-40 rounded-full overflow-hidden shadow-2xl border-4 border-white z-20"
+                className="absolute top-3 left-25 w-[152px] h-[152px] rounded-full overflow-hidden shadow-[5px_4px_32px_rgba(110,110,110,0.25)] border-0 z-20 bg-[#f7d777]"
               >
                 <Image 
                   src="/assets/images/healthcare-1.jpg" 
                   alt="Healthcare professional with patient"
                   fill
+                  sizes="160px"
+                  priority
                   className="object-cover"
                 />
               </motion.div>
@@ -475,12 +490,14 @@ export default function Home() {
                   y: { duration: 7, repeat: Infinity, ease: "easeInOut" },
                   x: { duration: 7, repeat: Infinity, ease: "easeInOut" }
                 }}
-                className="absolute top-8 right-8 w-56 h-56 rounded-full overflow-hidden shadow-2xl border-4 border-white z-20"
+                className="absolute top-8 right-8 w-[240px] h-[240px] rounded-full overflow-hidden shadow-[5px_4px_32px_rgba(110,110,110,0.25)] border-0 z-20 bg-[#bae27f]"
               >
                 <Image 
                   src="/assets/images/healthcare-2.jpg" 
                   alt="Healthcare team collaboration"
                   fill
+                  sizes="240px"
+                  priority
                   className="object-cover"
                 />
               </motion.div>
@@ -500,12 +517,14 @@ export default function Home() {
                   y: { duration: 8, repeat: Infinity, ease: "easeInOut" },
                   x: { duration: 8, repeat: Infinity, ease: "easeInOut" }
                 }}
-                className="absolute bottom-8 left-8 w-70 h-70 rounded-full overflow-hidden shadow-2xl border-4 border-white z-30"
+                className="absolute bottom-8 left-8 w-[269px] h-[269px] rounded-full overflow-hidden shadow-[5px_4px_32px_rgba(110,110,110,0.25)] border-0 z-30 bg-[#7ae4f7]"
               >
                 <Image 
                   src="/assets/images/healthcare-3.jpg" 
                   alt="Nurse using tablet"
                   fill
+                  sizes="269px"
+                  priority
                   className="object-cover"
                 />
               </motion.div>
@@ -525,12 +544,14 @@ export default function Home() {
                   y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
                   x: { duration: 5, repeat: Infinity, ease: "easeInOut" }
                 }}
-                className="absolute bottom-19 right-14 w-36 h-36 rounded-full overflow-hidden shadow-2xl border-4 border-white z-20"
+                className="absolute bottom-19 right-14 w-[152px] h-[152px] rounded-full overflow-hidden shadow-[5px_4px_32px_rgba(110,110,110,0.25)] border-0 z-20 bg-[#e6aff0]"
               >
                 <Image 
                   src="/assets/images/healthcare-4.jpg" 
                   alt="Elderly care service"
                   fill
+                  sizes="152px"
+                  priority
                   className="object-cover"
                 />
               </motion.div>
@@ -540,20 +561,20 @@ export default function Home() {
       </section>
 
       {/* Our Solutions Header Section */}
-      <section className="py-14 sm:py-16 lg:py-20 bg-white -mt-10 sm:-mt-12 lg:-mt-15 px-4 sm:px-6 lg:px-0">
+      <section className="py-10 sm:py-12 lg:py-10 bg-white -mt-4 sm:-mt-12 lg:-mt-15 relative">
         <div className="container-1200">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-left"
+            className="text-left space-y-4"
           >
-            <p className="text-gray-500 text-base sm:text-lg uppercase tracking-wider mb-8 sm:mb-10">
+            <p className="text-[#475e73] text-lg sm:text-lg font-normal leading-[30px]">
               Our Solutions
             </p>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl font-semibold leading-tight">
-              <span className="gradient-text-animated bg-linear-to-r from-teal-600 via-cyan-600 via-blue-600 to-purple-700 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">Everything You Need in One Place</span>
+            <h2 className="text-[32px] sm:text-3xl md:text-5xl lg:text-[54px] font-medium leading-[40px] sm:leading-tight lg:leading-[76px]">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-teal-600 via-cyan-500 to-blue-600 animate-gradient" style={{ backgroundSize: '200% auto' }}>Everything You Need in One Place</span>
             </h2>
           </motion.div>
         </div>
@@ -582,28 +603,28 @@ export default function Home() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="py-12 px-4 lg:px-0 lg:py-20"
+              className="py-7 md:py-20 lg:py-[100px]"
             >
-              <div className="grid lg:grid-cols-2 items-center gap-8 lg:gap-[90px]">
+              <div className="grid lg:grid-cols-2 items-center gap-5 md:gap-12 lg:gap-[84px]">
                 {/* Left Content */}
-                <div className="space-y-6 lg:space-y-8">
-                  {/* Icon & Heading */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
-                    <div className="w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-b from-cyan-100 to-[#ffffff] rounded-xl lg:rounded-2xl shadow-sm flex items-center justify-center border-2 border-white flex-shrink-0">
-                      <IoCalendarSharp className="w-6 lg:w-8 h-6 lg:h-8 text-[#079CB6]"/>
-                    </div>
-                    <h3 className="text-2xl lg:text-4xl font-semibold" style={{ color: '#193650' }}>
+                <div className="flex flex-col gap-5 lg:gap-8">
+                  {/* Icon */}
+                  <div className="w-10 md:w-14 lg:w-14 h-10 md:h-14 lg:h-14 bg-gradient-to-b from-[rgba(85,206,226,0.2)] to-[rgba(255,255,255,0.2)] rounded-xl md:rounded-2xl lg:rounded-2xl shadow-[0px_4px_3px_0px_#c5f1f9] flex items-center justify-center border border-white">
+                    <IoCalendarSharp className="w-6 md:w-8 lg:w-8 h-6 md:h-8 lg:h-8 text-[#079CB6]"/>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-[28px] md:text-[32px] lg:text-[32px] font-bold md:font-medium lg:font-medium leading-[34px] md:leading-[40px] lg:leading-[40px]" style={{ color: '#193650' }}>
                       Rostering & HR
                     </h3>
+                    <p className="text-base md:text-lg lg:text-lg leading-[24px] md:leading-[30px] lg:leading-[30px]" style={{ color: '#304A61' }}>
+                      Automated rostering and HR tools that manage shifts, absences, onboarding, and contracts while adapting to staff availability.
+                    </p>
                   </div>
-                  
-                  {/* Description */}
-                  <p className="text-base lg:text-lg leading-relaxed" style={{ color: '#304A61' }}>
-                    Automated rostering and HR tools that manage shifts, absences, onboarding, and contracts while adapting to staff availability.
-                  </p>
 
                   {/* Feature List */}
-                  <div className="space-y-3 lg:space-y-4">
+                  <div className="space-y-3">
                     {[
                       "Automated rostering and HR tools",
                       "Integrated absence and leave management",
@@ -618,12 +639,12 @@ export default function Home() {
                         viewport={{ once: true }}
                         className="flex items-center gap-3 lg:gap-4"
                       >
-                        <div className="w-4 lg:w-5 h-4 lg:h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
-                          <svg className="w-2.5 lg:w-3 h-2.5 lg:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
+                        <span className="text-base md:text-lg lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -691,30 +712,30 @@ export default function Home() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="py-12 px-4 lg:px-0 lg:py-20"
+              className="py-7 md:py-20 lg:py-[100px]"
             >
-              <div className="grid lg:grid-cols-2 items-center gap-8 lg:gap-[90px]">
+              <div className="grid lg:grid-cols-2 items-center gap-5 md:gap-12 lg:gap-[84px]">
                 {/* Left Content */}
-                <div className="space-y-6 lg:space-y-8">
-                  {/* Icon & Heading */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
-                    <div className="w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-b from-yellow-100 to-[#ffffff] rounded-xl lg:rounded-2xl shadow-sm flex items-center justify-center border-2 border-white flex-shrink-0">
-                      <svg className="w-6 lg:w-8 h-6 lg:h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl lg:text-4xl font-semibold" style={{ color: '#193650' }}>
+                <div className="flex flex-col gap-5 lg:gap-8">
+                  {/* Icon */}
+                  <div className="w-10 md:w-14 lg:w-14 h-10 md:h-14 lg:h-14 bg-gradient-to-b from-[rgba(248,209,99,0.2)] to-[rgba(255,255,255,0.2)] rounded-xl md:rounded-2xl lg:rounded-2xl shadow-[0px_4px_3px_0px_#fef0c5] flex items-center justify-center border border-white">
+                    <svg className="w-6 md:w-8 lg:w-8 h-6 md:h-8 lg:h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-[28px] md:text-[32px] lg:text-[32px] font-bold md:font-medium lg:font-medium leading-[34px] md:leading-[40px] lg:leading-[40px]" style={{ color: '#193650' }}>
                       Referral Management
                     </h3>
+                    <p className="text-base md:text-lg lg:text-lg leading-[24px] md:leading-[30px] lg:leading-[30px]" style={{ color: '#304A61' }}>
+                      Manage referrals from first enquiry to placement with structured workflows, AI-assisted assessments, and insights into care needs.
+                    </p>
                   </div>
-                  
-                  {/* Description */}
-                  <p className="text-base lg:text-lg leading-relaxed" style={{ color: '#304A61' }}>
-                    Manage referrals from first enquiry to placement with structured workflows, AI-assisted assessments, and insights into care needs.
-                  </p>
 
                   {/* Feature List */}
-                  <div className="space-y-3 lg:space-y-4">
+                  <div className="space-y-3">
                     {[
                       "End-to-end referral tracking",
                       "AI-supported care assessments",
@@ -729,12 +750,12 @@ export default function Home() {
                         viewport={{ once: true }}
                         className="flex items-center gap-3 lg:gap-4"
                       >
-                        <div className="w-4 lg:w-5 h-4 lg:h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
-                          <svg className="w-2.5 lg:w-3 h-2.5 lg:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
+                        <span className="text-base md:text-lg lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -802,27 +823,28 @@ export default function Home() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="py-12 px-4 lg:px-0 lg:py-20"
+              className="py-7 md:py-20 lg:py-[100px]"
             >
-              <div className="grid lg:grid-cols-2 items-center gap-8 lg:gap-[90px]">
+              <div className="grid lg:grid-cols-2 items-center gap-5 md:gap-12 lg:gap-[84px]">
                 {/* Left Content */}
-                <div className="space-y-6 lg:space-y-8">
-                  {/* Icon & Heading */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
-                    <div className="w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-b from-[#e7d0f5] to-[##FFFFFF] rounded-xl lg:rounded-2xl shadow-sm flex items-center justify-center border-2 border-white flex-shrink-0">
-                      <RiHandHeartFill className="w-6 lg:w-8 h-6 lg:h-8 text-purple-600"/>
-                    </div>
-                    <h3 className="text-2xl lg:text-4xl font-semibold" style={{ color: '#193650' }}>
+                <div className="flex flex-col gap-5 lg:gap-8">
+                  {/* Icon */}
+                  <div className="w-10 md:w-14 lg:w-14 h-10 md:h-14 lg:h-14 bg-gradient-to-b from-[rgba(189,111,246,0.2)] to-[rgba(255,255,255,0.2)] rounded-xl md:rounded-2xl lg:rounded-2xl shadow-[0px_4px_3px_0px_#e7d0f5] flex items-center justify-center border border-white">
+                    <RiHandHeartFill className="w-6 md:w-8 lg:w-8 h-6 md:h-8 lg:h-8 text-purple-600"/>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-[28px] md:text-[32px] lg:text-[32px] font-bold md:font-medium lg:font-medium leading-[34px] md:leading-[40px] lg:leading-[40px]" style={{ color: '#193650' }}>
                       Care Planning
                     </h3>
+                    <p className="text-base md:text-lg lg:text-lg leading-[24px] md:leading-[30px] lg:leading-[30px]" style={{ color: '#304A61' }}>
+                      Digital care planning with AI-assisted notes, intelligent eMAR, and insights to support proactive care decisions.
+                    </p>
                   </div>
-                  
-                  <p className="text-base lg:text-lg leading-relaxed" style={{ color: '#304A61' }}>
-                    Digital care planning with AI-assisted notes, intelligent eMAR, and insights to support proactive care decisions.
-                  </p>
 
                   {/* Feature List */}
-                  <div className="space-y-3 lg:space-y-4">
+                  <div className="space-y-3">
                     {[
                       "Digital, person-centred care plans",
                       "AI-assisted notes and updates",
@@ -837,12 +859,12 @@ export default function Home() {
                         viewport={{ once: true }}
                         className="flex items-center gap-3 lg:gap-4"
                       >
-                        <div className="w-4 lg:w-5 h-4 lg:h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
-                          <svg className="w-2.5 lg:w-3 h-2.5 lg:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
+                        <span className="text-base md:text-lg lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -910,29 +932,30 @@ export default function Home() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="py-12 px-4 lg:px-0 lg:py-20"
+              className="py-7 md:py-20 lg:py-[100px]"
             >
-              <div className="grid lg:grid-cols-2 items-center gap-8 lg:gap-[90px]">
+              <div className="grid lg:grid-cols-2 items-center gap-5 md:gap-12 lg:gap-[84px]">
                 {/* Left Content */}
-                <div className="space-y-6 lg:space-y-8">
-                  {/* Icon & Heading */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
-                    <div className="w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-b from-red-100 to-[#ffffff] rounded-xl lg:rounded-2xl shadow-sm flex items-center justify-center border-2 border-white flex-shrink-0">
-                      <svg className="w-6 lg:w-8 h-6 lg:h-8 text-[#DF6E6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl lg:text-4xl font-semibold" style={{ color: '#193650' }}>
+                <div className="flex flex-col gap-5 lg:gap-8">
+                  {/* Icon */}
+                  <div className="w-10 md:w-14 lg:w-14 h-10 md:h-14 lg:h-14 bg-gradient-to-b from-[rgba(223,110,110,0.2)] to-[rgba(255,255,255,0.2)] rounded-xl md:rounded-2xl lg:rounded-2xl shadow-[0px_4px_3px_0px_#fad4d4] flex items-center justify-center border border-white">
+                    <svg className="w-6 md:w-8 lg:w-8 h-6 md:h-8 lg:h-8 text-[#DF6E6E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-[28px] md:text-[32px] lg:text-[32px] font-bold md:font-medium lg:font-medium leading-[34px] md:leading-[40px] lg:leading-[40px]" style={{ color: '#193650' }}>
                       Compliance
                     </h3>
+                    <p className="text-base md:text-lg lg:text-lg leading-[24px] md:leading-[30px] lg:leading-[30px]" style={{ color: '#304A61' }}>
+                      Identify gaps early with AI-assisted mock inspections, alerts, and structured compliance records.
+                    </p>
                   </div>
-                  
-                  <p className="text-base lg:text-lg leading-relaxed" style={{ color: '#304A61' }}>
-                    Identify gaps early with AI-assisted mock inspections, alerts, and structured compliance records.
-                  </p>
 
                   {/* Feature List */}
-                  <div className="space-y-3 lg:space-y-4">
+                  <div className="space-y-3">
                     {[
                       "Ongoing compliance visibility",
                       "Smart alerts for risks and actions",
@@ -947,12 +970,12 @@ export default function Home() {
                         viewport={{ once: true }}
                         className="flex items-center gap-3 lg:gap-4"
                       >
-                        <div className="w-4 lg:w-5 h-4 lg:h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
-                          <svg className="w-2.5 lg:w-3 h-2.5 lg:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
+                        <span className="text-base md:text-lg lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -1020,27 +1043,28 @@ export default function Home() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="py-12 px-4 lg:px-0 lg:py-20"
+              className="py-7 md:py-20 lg:py-[100px]"
             >
-              <div className="grid lg:grid-cols-2 items-center gap-8 lg:gap-[90px]">
+              <div className="grid lg:grid-cols-2 items-center gap-5 md:gap-12 lg:gap-[84px]">
                 {/* Left Content */}
-                <div className="space-y-6 lg:space-y-8">
-                  {/* Icon & Heading */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
-                    <div className="w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-b from-[#d7edd2] to-[#ffffff] rounded-xl lg:rounded-2xl shadow-sm flex items-center justify-center border-2 border-white flex-shrink-0">
-                      <TbReportMoney className="w-6 lg:w-8 h-6 lg:h-8 text-[#5DBA4C]"/>
-                    </div>
-                    <h3 className="text-2xl lg:text-4xl font-semibold" style={{ color: '#193650' }}>
+                <div className="flex flex-col gap-5 lg:gap-8">
+                  {/* Icon */}
+                  <div className="w-10 md:w-14 lg:w-14 h-10 md:h-14 lg:h-14 bg-gradient-to-b from-[rgba(93,186,76,0.2)] to-[rgba(255,255,255,0.2)] rounded-xl md:rounded-2xl lg:rounded-2xl shadow-[0px_4px_3px_0px_#d7edd2] flex items-center justify-center border border-white">
+                    <TbReportMoney className="w-6 md:w-8 lg:w-8 h-6 md:h-8 lg:h-8 text-[#5DBA4C]"/>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-[28px] md:text-[32px] lg:text-[32px] font-bold md:font-medium lg:font-medium leading-[34px] md:leading-[40px] lg:leading-[40px]" style={{ color: '#193650' }}>
                       Payroll & Finance
                     </h3>
+                    <p className="text-base md:text-lg lg:text-lg leading-[24px] md:leading-[30px] lg:leading-[30px]" style={{ color: '#304A61' }}>
+                      Gain clear visibility into payroll, income, costs, and financial performance across your care services.
+                    </p>
                   </div>
-                  
-                  <p className="text-base lg:text-lg leading-relaxed" style={{ color: '#304A61' }}>
-                    Gain clear visibility into payroll, income, costs, and financial performance across your care services.
-                  </p>
 
                   {/* Feature List */}
-                  <div className="space-y-3 lg:space-y-4">
+                  <div className="space-y-3">
                     {[
                       "Accurate payroll linked directly to rotas",
                       "Track costs and income across services",
@@ -1055,12 +1079,12 @@ export default function Home() {
                         viewport={{ once: true }}
                         className="flex items-center gap-3 lg:gap-4"
                       >
-                        <div className="w-4 lg:w-5 h-4 lg:h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
-                          <svg className="w-2.5 lg:w-3 h-2.5 lg:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
+                        <span className="text-base md:text-lg lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -1128,29 +1152,30 @@ export default function Home() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="py-12 px-4 lg:px-0 lg:py-20"
+              className="py-7 md:py-20 lg:py-[100px]"
             >
-              <div className="grid lg:grid-cols-2 items-center gap-8 lg:gap-[90px]">
+              <div className="grid lg:grid-cols-2 items-center gap-5 md:gap-12 lg:gap-[84px]">
                 {/* Left Content */}
-                <div className="space-y-6 lg:space-y-8">
-                  {/* Icon & Heading */}
-                  <div className="flex flex-col md:flex-row md:items-center md:gap-4 space-y-4 md:space-y-0">
-                    <div className="w-12 lg:w-16 h-12 lg:h-16 bg-gradient-to-b from-[#ffddf6] to-[#ffffff] rounded-xl lg:rounded-2xl shadow-sm flex items-center justify-center border-2 border-white flex-shrink-0">
-                      <svg className="w-6 lg:w-8 h-6 lg:h-8 text-[#D31CA3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                    </div>
-                    <h3 className="text-2xl lg:text-4xl font-semibold" style={{ color: '#193650' }}>
+                <div className="flex flex-col gap-5 lg:gap-8">
+                  {/* Icon */}
+                  <div className="w-10 md:w-14 lg:w-14 h-10 md:h-14 lg:h-14 bg-gradient-to-b from-[rgba(211,28,163,0.2)] to-[rgba(255,255,255,0.2)] rounded-xl md:rounded-2xl lg:rounded-2xl shadow-[0px_4px_3px_0px_#ffddf6] flex items-center justify-center border border-white">
+                    <svg className="w-6 md:w-8 lg:w-8 h-6 md:h-8 lg:h-8 text-[#D31CA3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-[28px] md:text-[32px] lg:text-[32px] font-bold md:font-medium lg:font-medium leading-[34px] md:leading-[40px] lg:leading-[40px]" style={{ color: '#193650' }}>
                       Trainings
                     </h3>
+                    <p className="text-base md:text-lg lg:text-lg leading-[24px] md:leading-[30px] lg:leading-[30px]" style={{ color: '#304A61' }}>
+                      Centralised training management that tracks mandatory courses, monitors progress, and ensures staff remain compliant and up to date.
+                    </p>
                   </div>
-                  
-                  <p className="text-base lg:text-lg leading-relaxed" style={{ color: '#304A61' }}>
-                    Centralised training management that tracks mandatory courses, monitors progress, and ensures staff remain compliant and up to date.
-                  </p>
 
                   {/* Feature List */}
-                  <div className="space-y-3 lg:space-y-4">
+                  <div className="space-y-3">
                     {[
                       "Simple access to training and learning records",
                       "Clear visibility of staff progress and gaps",
@@ -1165,12 +1190,12 @@ export default function Home() {
                         viewport={{ once: true }}
                         className="flex items-center gap-3 lg:gap-4"
                       >
-                        <div className="w-4 lg:w-5 h-4 lg:h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
-                          <svg className="w-2.5 lg:w-3 h-2.5 lg:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#078C96' }}>
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-sm lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
+                        <span className="text-base md:text-lg lg:text-lg" style={{ color: '#304A61' }}>{feature}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -1216,7 +1241,7 @@ export default function Home() {
       </section>
 
       {/* Mobile App Section */}
-      <section className="py-12 lg:py-42 bg-gradient-to-b from-[#1a2332] via-[#1e2a3a] to-[#152a35] relative overflow-hidden z-[70]">
+      <section className="py-12 md:py-[52px] lg:py-42 bg-gradient-to-b from-[#000000] via-[#1e2a3a] to-[#103b4f] relative overflow-hidden z-[70]">
         {/* Background Circle Pattern - Upper Half Only */}
         <div className="absolute top-100 left-0 right-0 h-full opacity-50 overflow-hidden hidden lg:block">
           <Image 
@@ -1233,14 +1258,14 @@ export default function Home() {
         <div className="absolute bottom-32 right-32 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl hidden lg:block"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-400/5 rounded-full blur-3xl"></div>
 
-        <div className="container-1200 relative z-10 px-4 sm:px-6 lg:px-0">
-          <div className="text-center mb-8 sm:mb-10 lg:mb-30">
+        <div className="container-1200 relative z-10">
+          <div className="text-center mb-8 sm:mb-10 md:mb-[84px] lg:mb-30">
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="text-gray-400 text-sm lg:text-sm uppercase tracking-wider mb-3 lg:mb-4"
+              className="text-[#f8f9fa] text-[28px] font-bold leading-[34px] md:text-[28px] md:font-bold md:leading-[34px] lg:text-sm lg:font-normal lg:uppercase lg:tracking-wider mb-3 md:mb-4 lg:mb-4"
             >
               Mobile App
             </motion.p>
@@ -1249,16 +1274,16 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white"
+              className="text-[48px] leading-[56px] sm:text-4xl sm:leading-tight md:text-[54px] md:leading-[76px] lg:text-5xl font-medium text-white"
             >
-              Everything <span className="gradient-text-animated bg-linear-to-r from-teal-600 via-cyan-600 via-blue-600 to-purple-700 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">You Need</span>
+              Everything <span className="bg-clip-text text-transparent bg-linear-to-r from-teal-600 via-cyan-500 to-blue-600 animate-gradient" style={{ backgroundSize: '200% auto' }}>You Need</span>
             </motion.h2>
           </div>
 
           {/* Mobile Layout (Below 1024px) */}
-          <div className="lg:hidden px-0 sm:px-4 max-w-sm mx-auto">
-            {/* Feature Grid - Single Column */}
-            <div className="grid grid-cols-1 gap-4 mb-8">
+          <div className="lg:hidden">
+            {/* Feature Grid - 2 Columns */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 mb-8 md:mb-[84px]">
               {[
                 {
                   icon: (
@@ -1321,13 +1346,13 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
-                  className="bg-white/5 backdrop-blur-sm rounded-2xl p-4"
+                  className="bg-white/7 backdrop-blur-sm rounded-3xl p-5 sm:p-5"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white mb-3">
+                  <div className="w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-white/10 flex items-center justify-center text-white mb-4 sm:mb-6">
                     {feature.icon}
                   </div>
-                  <h3 className="text-base font-semibold text-white mb-1.5">{feature.title}</h3>
-                  <p className="text-sm text-gray-400">{feature.description}</p>
+                  <h3 className="text-xl sm:text-xl font-semibold text-white mb-2 sm:mb-3">{feature.title}</h3>
+                  <p className="text-base sm:text-base text-gray-400 leading-relaxed">{feature.description}</p>
                 </motion.div>
               ))}
             </div>
@@ -1340,10 +1365,13 @@ export default function Home() {
               viewport={{ once: true }}
               className="flex justify-center"
             >
-              <img 
+              <Image 
                 src="/assets/images/phone.svg" 
                 alt="Mobile App Interface" 
-                className="w-[240px] h-auto"
+                width={348}
+                height={702}
+                className="w-[240px] md:w-[348px] h-auto"
+                loading="lazy"
               />
             </motion.div>
           </div>
@@ -1401,10 +1429,13 @@ export default function Home() {
                     </div>
                     {/* Arrow - right side of feature */}
                     <div className={`absolute -right-22 -top-8 ${index===1?'top-8':null}  -translate-y-1/2 translate-x-8 w-20 h-20`}>
-                      <img 
+                      <Image 
                         src={`/assets/images/style/arrows/${index === 0 ? 'left_bottom.svg' : index === 1 ? 'left.svg' : 'left_more_bottom.svg'}`}
                         alt="" 
+                        width={80}
+                        height={80}
                         className="w-full h-full brightness-0 invert opacity-90"
+                        loading="lazy"
                       />
                     </div>
                   </motion.div>
@@ -1421,10 +1452,13 @@ export default function Home() {
                 viewport={{ once: true }}
                 className="relative z-10"
               >
-                <img 
+                <Image 
                   src="/assets/images/phone.svg" 
                   alt="Mobile App Interface" 
+                  width={280}
+                  height={560}
                   className="w-[280px] h-auto"
+                  loading="lazy"
                 />
               </motion.div>
             </div>
@@ -1480,10 +1514,13 @@ export default function Home() {
                     </div>
                     {/* Arrow - left side of feature */}
                     <div className="absolute -left-22 top-1/2 -translate-y-1/2 -translate-x-8 w-20 h-20">
-                      <img 
+                      <Image 
                         src={`/assets/images/style/arrows/${index === 0 ? 'right_top.svg' : index === 1 ? 'right.svg' : 'right_bottom.svg'}`}
                         alt="" 
+                        width={80}
+                        height={80}
                         className="w-full h-full brightness-0 invert"
+                        loading="lazy"
                       />
                     </div>
                   </motion.div>
@@ -1495,26 +1532,26 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="px-4 sm:px-6 lg:px-0 py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 relative overflow-hidden z-[70]">
+      <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 relative overflow-hidden z-[70]">
         {/* Background Color Spots */}
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none will-change-transform">
           <div className="relative w-full h-full">
-            <div className="absolute top-20 left-20 w-[500px] h-[500px] bg-purple-200/30 rounded-full" style={{ filter: 'blur(100px)' }}></div>
-            <div className="absolute bottom-20 right-20 w-[450px] h-[450px] bg-pink-200/30 rounded-full" style={{ filter: 'blur(100px)' }}></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-200/20 rounded-full" style={{ filter: 'blur(120px)' }}></div>
+            <div className="absolute top-20 left-20 w-[500px] h-[500px] bg-purple-200/30 rounded-full" style={{ filter: 'blur(80px)' }}></div>
+            <div className="absolute bottom-20 right-20 w-[450px] h-[450px] bg-pink-200/30 rounded-full" style={{ filter: 'blur(80px)' }}></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-200/20 rounded-full" style={{ filter: 'blur(80px)' }}></div>
           </div>
         </div>
 
-        <div className="container-1200 relative z-10 px-8 lg:px-0">
+        <div className="container-1200 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-left sm:text-center mb-8 sm:mb-16"
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-medium">
-              <span className="gradient-text-animated bg-linear-to-r from-teal-600 via-cyan-600 via-blue-600 to-purple-700 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">What our pilot users say</span>
+            <h2 className="text-[32px] leading-[40px] sm:text-4xl md:text-5xl font-medium">
+              <span className="bg-clip-text text-transparent bg-linear-to-r from-teal-600 via-cyan-500 to-blue-600 animate-gradient" style={{ backgroundSize: '200% auto' }}>What our pilot users say</span>
             </h2>
           </motion.div>
 
@@ -1529,7 +1566,7 @@ export default function Home() {
                 className="w-full max-w-5xl"
               >
                 <div 
-                  className="rounded-[24px] border border-[#DCCEE9] p-6 md:px-16 md:py-12 flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8"
+                  className="rounded-[24px] border border-[#DCCEE9] p-6 md:px-16 md:py-12 flex flex-col items-start gap-4 md:flex-row md:items-start md:gap-8"
                   style={{ 
                     background: 'rgba(191, 165, 215, 0.09)',
                     backdropFilter: 'blur(21.55px)'
@@ -1537,22 +1574,24 @@ export default function Home() {
                 >
                   <div className="w-16 h-16 bg-[#e592a2] md:w-20 md:h-20 rounded-full overflow-hidden flex-shrink-0 relative">
                     <Image 
-                      src={testimonials[currentTestimonial].image}
-                      alt={testimonials[currentTestimonial].name}
+                      src={TESTIMONIALS[currentTestimonial].image}
+                      alt={TESTIMONIALS[currentTestimonial].name}
                       fill
+                      sizes="80px"
+                      loading="lazy"
                       className="object-cover"
                     />
                   </div>
-                  <div className="text-center md:text-left flex-1">
-                    <p className="text-base md:text-xl font-semibold text-[#193650] mb-4 md:mb-6 leading-relaxed">
-                      {testimonials[currentTestimonial].quote}
+                  <div className="text-left md:text-left flex-1">
+                    <p className="text-lg md:text-xl font-semibold text-[#193650] mb-4 md:mb-6 leading-relaxed">
+                      {TESTIMONIALS[currentTestimonial].quote}
                     </p>
                     <div>
                       <p className="text-base md:text-lg font-semibold text-[#193650]">
-                        {testimonials[currentTestimonial].name}
+                        {TESTIMONIALS[currentTestimonial].name}
                       </p>
                       <p className="text-sm text-[#475E73] mt-1">
-                        {testimonials[currentTestimonial].role}
+                        {TESTIMONIALS[currentTestimonial].role}
                       </p>
                     </div>
                   </div>
@@ -1562,7 +1601,7 @@ export default function Home() {
 
             {/* Dots indicator */}
             {/* <div className="absolute -bottom-0 left-1/2 -translate-x-1/2 flex justify-center gap-2">
-              {testimonials.map((_, index) => (
+              {TESTIMONIALS.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentTestimonial(index)}
@@ -1580,7 +1619,7 @@ export default function Home() {
       </section>
 
       {/* Get in Touch Section */}
-      <section ref={getInTouchRef} className="bg-white relative z-[70] px-4 sm:px-6 lg:px-0">
+      <section ref={getInTouchRef} className="bg-white relative z-[70]">
         <AnimatePresence mode="wait">
           {formStatus === "success" ? (
             <motion.div
@@ -1589,7 +1628,7 @@ export default function Home() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.5 }}
-              className="flex flex-col items-center justify-center relative px-8 sm:px-16 lg:px-30 py-20"
+              className="flex flex-col items-center justify-center relative py-20 container-1200"
               style={{
                 background: "radial-gradient(ellipse 77.23px 265.81px at 49.5% 92.87%, rgba(255,255,255,1) 0%, rgba(244,250,251,1) 100%)",
                 minHeight: "413px",
@@ -1688,7 +1727,7 @@ export default function Home() {
               transition={{ duration: 0.3 }}
               className="py-12 sm:py-16 lg:py-24"
             >
-              <div className="container-1200 px-4 sm:px-6 lg:px-0">
+              <div className="container-1200">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -1696,8 +1735,8 @@ export default function Home() {
                   viewport={{ once: true }}
                   className="mb-12"
                 >
-                  <h2 className="text-4xl md:text-5xl font-medium mb-4">
-                    <span className="gradient-text-animated bg-linear-to-r from-teal-600 via-cyan-600 via-blue-600 to-purple-700 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">Get in Touch</span>
+                  <h2 className="text-[40px] leading-[48px] md:text-5xl font-medium mb-4">
+                    <span className="bg-clip-text text-transparent bg-linear-to-r from-teal-600 via-cyan-500 to-blue-600 animate-gradient" style={{ backgroundSize: '200% auto' }}>Get in Touch</span>
                   </h2>
                   <p className="text-gray-600 text-lg">
                     Gain clear visibility into payroll, income, costs, and financial performance across your care services.
@@ -1782,7 +1821,7 @@ export default function Home() {
                     <textarea
                       id="message"
                       name="message"
-                      rows={6}
+                      rows={4}
                       value={formData.message}
                       onChange={handleFormChange}
                       required
@@ -1801,7 +1840,7 @@ export default function Home() {
                     disabled={formStatus === "sending"}
                     className="w-full px-8 py-5 text-white rounded-lg text-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                     style={{
-                      background: 'linear-gradient(90deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
+                      background: 'linear-gradient(135deg, #0d9488, #06b6d4, #2563eb, #7c3aed)',
                       backgroundSize: '200% auto',
                       animation: 'gradient 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                     }}
@@ -1821,8 +1860,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="px-4 sm:px-6 lg:px-0 bg-gradient-to-b from-[#051018] from-30% to-[#174E67] text-white relative z-[70] overflow-hidden" style={{ minHeight: '650px' }}>
-        <div className="container-1200 pt-12 sm:pt-16 lg:pt-19 flex flex-col justify-between px-4 sm:px-6 lg:px-0" style={{ minHeight: '650px' }}>
+      <footer className="bg-gradient-to-b from-[#051018] from-30% to-[#174E67] text-white relative z-[70] overflow-hidden" style={{ minHeight: '650px' }}>
+        <div className="container-1200 pt-12 sm:pt-16 lg:pt-19 flex flex-col justify-between" style={{ minHeight: '650px' }}>
           {/* Logo Row */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1832,13 +1871,13 @@ export default function Home() {
             className="mb-18"
           >
             <div className="flex items-center gap-3">
-              <img src="assets/images/logo_light.svg" alt="Caelan" className="w-46" />
+              <Image src="/assets/images/logo_light.svg" alt="Caelan" width={184} height={40} className="w-46" />
             </div>
           </motion.div>
 
           {/* Contact Info Cards - Full Width */}
-          <div className="mb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {contactCards.map((card, index) => {
+          <div className="mb-12 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+            {CONTACT_CARDS.map((card, index) => {
               const IconComponent = card.icon;
               const handleClick = () => {
                 if (card.icon === HiLocationMarker) {
@@ -1859,7 +1898,7 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   onClick={handleClick}
-                  className="bg-[#0D2636] rounded-2xl p-6 border border-[#1B3A4D] hover:border-teal-500 transition-colors group relative flex flex-col justify-center items-start gap-4 flex-1 self-stretch cursor-pointer"
+                  className={`bg-[#0D2636] rounded-2xl p-6 border border-[#1B3A4D] hover:border-teal-500 transition-colors group relative flex flex-col justify-center items-start gap-4 flex-1 self-stretch cursor-pointer ${index < 2 ? 'col-span-2 sm:col-span-1' : ''}`}
                 >
                   {card.showExternalLink && (
                     <FaExternalLinkAlt className="w-4 h-4 text-white absolute top-6 right-6" />
