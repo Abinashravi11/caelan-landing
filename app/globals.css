@@ -33,6 +33,14 @@ body {
   padding-right: 1rem;
 }
 
+/* Tablet (iPad): increase container padding to match Figma 80px side padding */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .container-1200 {
+    padding-left: 5rem;
+    padding-right: 5rem;
+  }
+}
+
 /* Animated gradient text */
 @keyframes gradient {
   0% {
