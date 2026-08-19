@@ -47,6 +47,11 @@ export default function CookieConsent() {
     const stored = readStoredConsent();
     if (stored) {
       setConsent(stored);
+      // Clear anything Google Analytics left behind: cookies set before this
+      // banner existed, or rewritten while the withdrawal reload was in flight.
+      if (stored === "denied") {
+        clearAnalyticsCookies();
+      }
     } else {
       setVisible(true);
     }
@@ -74,9 +79,13 @@ export default function CookieConsent() {
 
       // Analytics already running and now withdrawn: clear its cookies and reload,
       // since the loaded gtag script cannot be unloaded in place.
-      if (value === "denied" && previous === "granted") {
+      if (value === "denied") {
         clearAnalyticsCookies();
-        window.location.reload();
+
+        // A gtag script that has already executed cannot be unloaded in place.
+        if (previous === "granted") {
+          window.location.reload();
+        }
       }
     },
     [],
