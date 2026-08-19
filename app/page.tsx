@@ -8,6 +8,7 @@ import { HiLocationMarker, HiMail, HiPhone } from "react-icons/hi";
 import { FaLinkedin, FaExternalLinkAlt } from "react-icons/fa";
 import { RiHandHeartFill } from "react-icons/ri";
 import { TbReportMoney } from "react-icons/tb";
+import { OPEN_COOKIE_PREFERENCES_EVENT } from "./components/CookieConsent";
 
 const TESTIMONIALS = [
   {
@@ -1927,6 +1928,15 @@ export default function Home() {
               <div className="flex items-center gap-6">
                 <a href="/privacy-policy" className="text-sm text-gray-200 hover:text-white transition-colors">Privacy Policy</a>
                 <a href="/terms" className="text-sm text-gray-200 hover:text-white transition-colors">Terms & Conditions</a>
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.dispatchEvent(new Event(OPEN_COOKIE_PREFERENCES_EVENT))
+                  }
+                  className="text-sm text-gray-200 hover:text-white transition-colors cursor-pointer"
+                >
+                  Cookie preferences
+                </button>
               </div>
             </div>
           </motion.div>
