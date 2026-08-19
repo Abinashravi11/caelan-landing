@@ -7,6 +7,12 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16 text-gray-800">
+      <a
+        href="/"
+        className="mb-8 inline-block text-sm text-gray-500 transition-colors hover:text-gray-900"
+      >
+        &larr; Back to Caelan
+      </a>
       <h1 className="mb-2 text-3xl font-bold text-gray-900">Privacy Policy</h1>
       <p className="mb-10 text-sm text-gray-500">
         <strong>Last updated: 19 August 2026</strong>
