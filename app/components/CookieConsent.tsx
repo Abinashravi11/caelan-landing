@@ -109,7 +109,7 @@ export default function CookieConsent() {
           role="dialog"
           aria-modal="false"
           aria-label="Cookie preferences"
-          className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#0b1522]/95 px-6 py-5 text-white backdrop-blur"
+          className="fixed inset-x-0 bottom-0 z-[100] border-t border-white/10 bg-[#0b1522]/95 px-6 py-5 text-white backdrop-blur"
         >
           <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <p className="max-w-2xl text-sm leading-relaxed text-gray-200">
