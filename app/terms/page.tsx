@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions | Caelan",
+  description: "Terms and conditions for use of the caelan.care website.",
 };
 
 export default function TermsPage() {

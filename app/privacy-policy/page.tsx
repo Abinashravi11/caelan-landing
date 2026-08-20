@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Caelan",
+  description: "How Excellence Digital Solutions Ltd, trading as Caelan, collects and uses personal data.",
 };
 
 export default function PrivacyPolicyPage() {

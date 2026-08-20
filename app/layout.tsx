@@ -11,8 +11,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Caelan Care",
-  description: "AI-powered care management software to manage care",
+  title: "Caelan | AI-Powered Care Management Software",
+  description: "Caelan is AI-powered care management software for care providers in the UK.",
   verification: {
     google: "SPVj-SRHH6I1zn0A38_unWpPNT2rMn4nLcGwgfiuW4Q",
   }
