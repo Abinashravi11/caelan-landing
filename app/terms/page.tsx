@@ -7,13 +7,19 @@ export const metadata: Metadata = {
     canonical: "/terms",
   },
   openGraph: {
+    type: "website",
+    siteName: "Caelan",
+    locale: "en_GB",
     url: "/terms",
     title: "Terms & Conditions | Caelan",
     description: "Terms and conditions for use of the caelan.care website.",
+    images: ["/opengraph-image"],
   },
   twitter: {
+    card: "summary_large_image",
     title: "Terms & Conditions | Caelan",
     description: "Terms and conditions for use of the caelan.care website.",
+    images: ["/opengraph-image"],
   },
 };
 
