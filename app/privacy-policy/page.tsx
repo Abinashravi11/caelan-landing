@@ -7,15 +7,21 @@ export const metadata: Metadata = {
     canonical: "/privacy-policy",
   },
   openGraph: {
+    type: "website",
+    siteName: "Caelan",
+    locale: "en_GB",
     url: "/privacy-policy",
     title: "Privacy Policy | Caelan",
     description:
       "How Excellence Digital Solutions Ltd, trading as Caelan, collects and uses personal data.",
+    images: ["/opengraph-image"],
   },
   twitter: {
+    card: "summary_large_image",
     title: "Privacy Policy | Caelan",
     description:
       "How Excellence Digital Solutions Ltd, trading as Caelan, collects and uses personal data.",
+    images: ["/opengraph-image"],
   },
 };
 
