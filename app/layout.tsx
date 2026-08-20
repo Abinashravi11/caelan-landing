@@ -11,8 +11,25 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://caelan.care"),
   title: "Caelan | AI-Powered Care Management Software",
-  description: "Caelan is AI-powered care management software for care providers in the UK.",
+  description:
+    "Caelan is AI-powered care management software for care providers in the UK.",
+  openGraph: {
+    type: "website",
+    siteName: "Caelan",
+    locale: "en_GB",
+    url: "https://caelan.care",
+    title: "Caelan | AI-Powered Care Management Software",
+    description:
+      "Caelan is AI-powered care management software for care providers in the UK.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Caelan | AI-Powered Care Management Software",
+    description:
+      "Caelan is AI-powered care management software for care providers in the UK.",
+  },
   verification: {
     google: "SPVj-SRHH6I1zn0A38_unWpPNT2rMn4nLcGwgfiuW4Q",
   }
