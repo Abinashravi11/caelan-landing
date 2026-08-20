@@ -4,7 +4,25 @@ export const alt = "Caelan — AI-powered care management software";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OpengraphImage() {
+const BOLD_FONT_URL =
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf";
+
+// Satori ships only a 400-weight fallback, so fontWeight is ignored unless a
+// bold face is supplied. If the fetch fails the card still renders, just not bold.
+async function loadBoldFont(): Promise<ArrayBuffer | null> {
+  try {
+    const res = await fetch(BOLD_FONT_URL);
+    if (!res.ok) return null;
+    return await res.arrayBuffer();
+  } catch {
+    return null;
+  }
+}
+
+export default async function OpengraphImage() {
+  const boldFont = await loadBoldFont();
+  const boldFamily = boldFont ? "Poppins" : "sans-serif";
+
   return new ImageResponse(
     (
       <div
@@ -24,6 +42,7 @@ export default function OpengraphImage() {
         <div style={{ display: "flex", alignItems: "center" }}>
           <div
             style={{
+              fontFamily: boldFamily,
               fontSize: 46,
               fontWeight: 700,
               letterSpacing: "-1px",
@@ -38,6 +57,7 @@ export default function OpengraphImage() {
         <div
           style={{
             display: "flex",
+            fontFamily: boldFamily,
             fontSize: 66,
             fontWeight: 700,
             lineHeight: 1.15,
@@ -60,6 +80,11 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size,
+    {
+      ...size,
+      fonts: boldFont
+        ? [{ name: "Poppins", data: boldFont, weight: 700 as const, style: "normal" as const }]
+        : undefined,
+    },
   );
 }
